@@ -150,11 +150,14 @@ class BaseConfigurator(object):
     }
 
     # We might want to use a different one, e.g. importlib
-    importer = __import__
+    # importer = __import__ # caution importer cause error __import__() argument 1 must be string, not DictConfigurator bug: http://bugs.python.org/issue12718
 
     def __init__(self, config):
         self.config = ConvertingDict(config)
         self.config.configurator = self
+
+    def importer(self, *args):
+        return __import__(*args)
 
     def resolve(self, s):
         """

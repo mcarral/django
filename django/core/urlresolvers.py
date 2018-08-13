@@ -18,7 +18,7 @@ from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import force_str, force_text, iri_to_uri
 from django.utils.functional import memoize, lazy
 from django.utils.http import urlquote
-from django.utils.importlib import import_module
+from django.utils.importlib import import_module, import_class_method
 from django.utils.module_loading import module_has_submodule
 from django.utils.regex_helper import normalize
 from django.utils import six
@@ -106,7 +106,11 @@ def get_callable(lookup_view, can_fail=False):
                 raise
         else:
             try:
-                lookup_view = getattr(mod, func_name)
+                try:
+                    lookup_view = getattr(import_module(mod_name), func_name)
+                except (ImportError, AttributeError, KeyError):
+                    lookup_view = import_class_method(mod_name, mod_name, func_name)
+                    # lookup_view = getattr(viewclass(), func_name)
                 if not callable(lookup_view):
                     raise ViewDoesNotExist(
                         "Could not import %s.%s. View is not callable." %
