@@ -94,32 +94,20 @@ def get_callable(lookup_view, can_fail=False):
             return lookup_view
 
         try:
-            mod = import_module(mod_name)
-        except ImportError:
-            parentmod, submod = get_mod_func(mod_name)
-            if (not can_fail and submod != '' and
-                    not module_has_submodule(import_module(parentmod), submod)):
-                raise ViewDoesNotExist(
-                    "Could not import %s. Parent module %s does not exist." %
-                    (lookup_view, mod_name))
-            if not can_fail:
-                raise
-        else:
             try:
-                try:
-                    lookup_view = getattr(import_module(mod_name), func_name)
-                except (ImportError, AttributeError, KeyError):
-                    lookup_view = import_class_method(mod_name, mod_name, func_name)
-                    # lookup_view = getattr(viewclass(), func_name)
-                if not callable(lookup_view):
-                    raise ViewDoesNotExist(
-                        "Could not import %s.%s. View is not callable." %
-                        (mod_name, func_name))
-            except AttributeError:
-                if not can_fail:
-                    raise ViewDoesNotExist(
-                        "Could not import %s. View does not exist in module %s." %
-                        (lookup_view, mod_name))
+                lookup_view = getattr(import_module(mod_name), func_name)
+            except (ImportError, AttributeError, KeyError):
+                lookup_view = import_class_method(mod_name, mod_name, func_name)
+                # lookup_view = getattr(viewclass(), func_name)
+            if not callable(lookup_view):
+                raise ViewDoesNotExist(
+                    "Could not import %s.%s. View is not callable." %
+                    (mod_name, func_name))
+        except AttributeError:
+            if not can_fail:
+                raise ViewDoesNotExist(
+                    "Could not import %s. View does not exist in module %s." %
+                    (lookup_view, mod_name))
     return lookup_view
 get_callable = memoize(get_callable, _callable_cache, 1)
 
