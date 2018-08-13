@@ -34,3 +34,19 @@ def import_module(name, package=None):
         name = _resolve_name(name[level:], package, level)
     __import__(name)
     return sys.modules[name]
+
+def import_class_method(module_name, class_name=None, method_name=None, *args, **kwargs):
+    """
+    Replaces the need to use an 'exec' statement with import statements.
+    :param module_name is a string of the module to be imported.
+    :param class_name should be a string with the class name defined inside the imported module. If not defined, its value takes from module_name.
+    :param method_name should be a string with the static or class method name defined in the loaded class.
+    :returns a class or a callable method in that class. None if a method name was defined and not found or if not callable
+    """
+    module = __import__(module_name, globals(), locals(), fromlist=[module_name])
+    res = getattr(module, class_name or module_name)
+    if method_name:
+        res = res(*args, **kwargs)
+        res = getattr(res, method_name, None)
+        res = (None, res)[callable(res)]
+    return res
